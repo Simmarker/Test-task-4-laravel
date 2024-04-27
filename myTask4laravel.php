@@ -12,34 +12,36 @@ class YourService
     {
         $handle = fopen($file, "r");
 
-        if ($handle !== false) {
-            $insertQuery = [];
-            try {
-                $db->beginTransaction();
-
-                while (($data = fgetcsv($handle, 1000, ",")) !== false) {
-                    $splitData = $this->splitRow($data);
-                    $insertQuery[] = [
-                        'number' => $splitData['number'],
-                        'name' => $splitData['name']
-                    ];
-                }
-                
-                YourModel::insert($insertQuery);
-                $db->commit();
-                fclose($handle);
-
-                return ['success' => true];
-            } catch (Exception $e) {
-                $db->rollBack();
-                fclose($handle);
-
-                return ['success' => false, 'error_message' => $e->getMessage()];
-            }
+        if ($handle === false) {
+            return ['success' => false];
         }
+        
+        $insertQuery = [];
+        try {
+            $db->beginTransaction();
 
-        return ['success' => false];
+            while (($data = fgetcsv($handle, 1000, ",")) !== false) {
+                $splitData = $this->splitRow($data);
+                $insertQuery[] = [
+                    'number' => $splitData['number'],
+                    'name' => $splitData['name']
+                ];
+            }
+            
+            YourModel::insert($insertQuery);
+            $db->commit();
+            fclose($handle);
+
+            return ['success' => true];
+        } catch (Exception $e) {
+            $db->rollBack();
+            fclose($handle);
+
+            return ['success' => false, 'error_message' => $e->getMessage()];
+        }
     }
+
+        
 
     // API метод рассылки данных из таблицы, задание 2
     public function sendDataFromTable()
